@@ -33,31 +33,13 @@ This project uses `uv` for dependency management.
 
 ## Running Experiments
 
-To run the full suite of experiments (IID vs Non-IID vs FedProx), execute:
+To run the full suite of experiments (IID vs Non-IID vs FedProx and others), execute:
 
 ```bash
 uv run -m src.main
 ```
 
-### Experiment Scenarios
-
-The script (`src/main.py`) runs three scenarios using the **Dataset Diabetes 130-US hospitals** dataset:
-
-1.  **Baseline (IID)**:
-    *   **Algorithm**: FedAvg
-    *   **Distribution**: IID (Uniform)
-    *   **Result**: High accuracy (~77%) establishes a baseline.
-
-2.  **Challenge (Non-IID)**:
-    *   **Algorithm**: FedAvg
-    *   **Distribution**: Non-IID (Dirichlet Skew, $\beta=0.5$)
-    *   **Result**: Performance drops significantly (~55%) due to data heterogeneity across clients.
-
-3.  **Treatment (FedProx)**:
-    *   **Algorithm**: FedProx
-    *   **Distribution**: Non-IID (Dirichlet Skew, $\beta=0.5$)
-    *   **Parameter**: $\mu=0.1$ (Proximal term)
-    *   **Goal**: Improve convergence and stability in heterogeneous settings.
+The execution log is saved in `RESULTS.log`.
 
 ## Data
 
