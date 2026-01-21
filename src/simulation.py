@@ -1,15 +1,16 @@
-import torch
 import torch.nn as nn
-from fluke import FlukeENV, DDict
+from fluke import DDict, FlukeENV
+from fluke.algorithms import CentralizedFL
 from fluke.algorithms.fedavg import FedAVG
 from fluke.data import DataSplitter
 from fluke.evaluation import ClassificationEval
+
 from src.dataset import get_fluke_dataset
 from src.models import BinaryClassifier
 
 
 def run_experiment(
-    algorithm_class=FedAVG,
+    algorithm_class: type[CentralizedFL] = FedAVG,
     distribution="iid",
     n_clients=5,
     n_rounds=10,
@@ -18,6 +19,7 @@ def run_experiment(
     epochs=1,
     seed=42,
     extra_client_params=None,
+    sample_size=None,
 ):
     # 1. Setup Environment
     # Re-instantiating FlukeENV singleton to update settings if needed
@@ -30,8 +32,10 @@ def run_experiment(
     env.set_evaluator(evaluator)
 
     # 2. Prepare Data
-    print(f"Loading data...")
-    data_container, input_dim = get_fluke_dataset(batch_size=batch_size)
+    print("Loading data...")
+    data_container, input_dim = get_fluke_dataset(
+        batch_size=batch_size, sample_size=sample_size
+    )
 
     # 3. Create Data Splitter
     print(f"Splitting data ({distribution})...")
@@ -47,7 +51,7 @@ def run_experiment(
         server_test=True,
         keep_test=True,
         client_split=0.2,
-        dist_args=dist_args,
+        dist_args=dist_args or DDict(),
     )
 
     # 4. Define Model
@@ -81,7 +85,7 @@ def run_experiment(
     algo.run(n_rounds=n_rounds, eligible_perc=1.0)
 
     # 8. Final Evaluation
-    print(f"Evaluating final model...")
+    print("Evaluating final model...")
     metrics = algo.server.evaluate(evaluator, algo.server.test_set)
     print(f"Final Global Metrics: {metrics}")
 
@@ -90,4 +94,4 @@ def run_experiment(
 
 
 if __name__ == "__main__":
-    run_experiment()
+    run_experiment(FedAVG)

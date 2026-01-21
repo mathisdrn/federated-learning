@@ -1,13 +1,15 @@
-from src.simulation import run_experiment
+from typing import Optional
+
 from fluke.algorithms.fedavg import FedAVG
 from fluke.algorithms.fedprox import FedProx
-from fluke import FlukeENV
+
+from src.simulation import run_experiment
 
 
 def main():
     print("==================================================")
     print("Project: Federated Learning for Medical Diagnosis")
-    print("Dataset: Heart Disease UCI")
+    print("Dataset: Diabetes 130-US Hospitals (1999-2008)")
     print("==================================================")
 
     # Common settings
@@ -16,6 +18,7 @@ def main():
     BATCH_SIZE = 32
     LR = 0.01
     EPOCHS = 1
+    SAMPLE_SIZE: Optional[int] = 1000
 
     # 1. Baseline: IID Data with FedAvg
     print("\n[Scenario 1] IID Data - FedAvg")
@@ -29,6 +32,7 @@ def main():
         lr=LR,
         epochs=EPOCHS,
         seed=42,
+        sample_size=SAMPLE_SIZE,
     )
 
     # 2. Challenge: Non-IID Data with FedAvg
@@ -44,6 +48,7 @@ def main():
         lr=LR,
         epochs=EPOCHS,
         seed=42,
+        sample_size=SAMPLE_SIZE,
     )
 
     # 3. Treatment: Non-IID Data with FedProx
@@ -58,6 +63,7 @@ def main():
         lr=LR,
         epochs=EPOCHS,
         seed=42,
+        sample_size=SAMPLE_SIZE,
         extra_client_params={"mu": 0.1},  # Proximal term weight
     )
 
