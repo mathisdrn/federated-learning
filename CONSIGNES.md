@@ -1,86 +1,108 @@
-# Synthèse du TP : Découverte de l'Apprentissage Fédéré avec Fluke
+# Projet : Apprentissage fédéré pour le diagnostic médical
 
-## 1\. Aperçu du Projet
+## Travaux Pratiques – Federated Learning
 
-L'objectif de cette séance de travaux pratiques (TP) est de découvrir et manipuler **Fluke**, un framework dédié à l'Apprentissage Fédéré (FL). À la fin de la séance, vous devriez être capable de configurer, exécuter et analyser des scénarios FL, allant de cas IID simples à des intégrations personnalisées complexes.
+## 1. Objectifs du projet
 
-## 2\. Configuration de l'Environnement
+Ce projet a pour objectif de mettre en œuvre un système d'apprentissage fédéré (Federated Learning, FL) dans un contexte médical, en utilisant le framework Fluke.
 
-Avant d'exécuter les expériences, vous devez établir un environnement FL fonctionnel.
+À l'issue du projet, vous devez être capables de :
 
-  * **Prérequis Python :** Créez un environnement avec Python $\ge 3.10$ pour assurer la compatibilité.
-  * **Installation :**
-      * **Rapide (Mode Utilisateur) :**
-        ```bash
-        conda create -n fluke310 python=3.10
-        conda activate fluke310
-        pip install fluke-fl
-        ```
-      * **Mode Développement (Mode Éditable) :** Clonez le dépôt et installez avec `pip install -e`.
-  * **Vérification :** Assurez-vous que l'installation est réussie en exécutant `fluke --help`.
+- comprendre et implémenter un protocole FedAvg dans un contexte médical ;
+- gérer une forte hétérogénéité entre plusieurs clients ;
+- intégrer un mécanisme de préservation de la vie privée ;
+- étudier la fairness du modèle entraîné.
 
-## 3\. Tâches Principales & Expériences
+Le projet est réalisé en binôme.
 
-### Phase 1 : Première Expérience (MNIST IID)
+## 2. Contexte et description générale
 
-  * **Configuration :** Générez les fichiers de configuration par défaut pour l'expérience (`exp.yaml`) et l'algorithme (`fedavg.yaml`) en utilisant :
-      * `fluke-get config exp`
-      * `fluke-get config fedavg`
-  * **Exécution :** Lancez une session d'entraînement d'Apprentissage Fédéré standard :
-      * Commande : `fluke federation config/exp.yaml config/fedavg.yaml`.
-  * **Visualisation :** Surveillez l'évolution des performances au cours des rounds d'entraînement.
+Dans le domaine médical, le partage de données des patients entre établissements est fortement limité pour des raisons de confidentialité, de réglementation et de sécurité. L'apprentissage fédéré permet d'entraîner un modèle global sur les données de plusieurs centres médicaux sans jamais centraliser les données brutes.
 
-### Phase 2 : Analyse Comparative
+Dans ce projet, vous allez :
 
-Vous devez comparer l'approche Fédérée avec deux autres paradigmes :
+- choisir un jeu de données médical ;
+- simuler plusieurs clients représentant des hôpitaux ou centres médicaux ;
+- entraîner un modèle en fédéré avec Fluke ;
+- étudier l'hétérogénéité des données, la préservation de la vie privée, et l'équité.
 
-1.  **Entraînement Centralisé :** Exécutez un entraînement classique non fédéré en utilisant `fluke centralized ...`.
-2.  **Décentralisé (Clients uniquement) :** Exécutez un entraînement local indépendant en utilisant `fluke clients-only ...`.
-3.  **Analyse :** Comparez les courbes d'apprentissage et discutez des différences entre les approches FL, centralisée et clients uniquement.
+## 3. Jeux de données
 
-### Phase 3 : Journalisation & Métriques
+Vous êtes libres de choisir un jeu de données dans un contexte médical pour réaliser votre projet. Les jeux de données ci-dessous sont proposés à titre d'exemple.
 
-  * **Configuration du Logger :** Modifiez la section `logger` dans la configuration (les options standard incluent `Log`, `WandBLog`, `TensorboardLog`).
-  * **Export des Données :** Configurez la sauvegarde des métriques pour générer deux fichiers CSV : un pour les métriques globales et un pour les métriques spécifiques aux clients.
-  * **Tracés :**
-      * Tracez la précision globale au fil des rounds.
-      * Tracez la précision par client et comparez leurs trajectoires.
+### 3.1. Breast Cancer Wisconsin (Diagnostic)
 
-### Phase 4 : Scénarios Non-IID
+- Type : données tabulaires.
+- Tâche : classification binaire (bénin / malin).
+- Attributs démographiques : âge.
+- Lien : https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)
 
-Testez l'impact de la distribution hétérogène des données (Non-IID).
+### 3.2. Heart Disease UCI
 
-  * **Configuration :** Modifiez le paramètre `distribution` dans le fichier d'expérience pour utiliser une distribution de Dirichlet.
-    ```yaml
-    distribution:
-      name: dir
-      beta: 0.02
-    ```
-  * **Analyse :** Entraînez, sauvegardez les traces et comparez les performances avec le scénario IID de la Phase 1.
+- Type : données tabulaires.
+- Tâche : diagnostic de maladie cardiaque.
+- Attributs démographiques : âge, sexe.
+- Lien : https://archive.ics.uci.edu/ml/datasets/Heart+Disease
 
-### Phase 5 : Atténuation de l'Hétérogénéité (SCAFFOLD)
+### 3.3. Diabetes 130-US hospitals
 
-Utilisez des algorithmes avancés pour gérer l'hétérogénéité des données.
+- Type : données tabulaires issues de dossiers hospitaliers.
+- Tâche : prédiction de réadmission.
+- Attributs démographiques : âge, sexe, origine ethnique.
+- Lien : https://archive.ics.uci.edu/ml/datasets/diabetes+130-us+hospitals+for+years+1999-2008
 
-  * **Configuration :** Récupérez la configuration SCAFFOLD en utilisant `fluke get scaffold`.
-  * **Exécution :** Réexécutez l'expérience Non-IID en utilisant SCAFFOLD au lieu de FedAVG.
-  * **Évaluation :** Comparez les performances avec FedAVG Non-IID et répondez : *Est-ce que SCAFFOLD améliore l'apprentissage dans cette configuration ? Pourquoi ?*
+## 4. Cadre technique
 
-### Phase 6 : Exploration des Jeux de Données Internes
+- Langage : Python.
+- Framework de deep learning : PyTorch ou équivalent.
+- Framework d'apprentissage fédéré : Fluke.
 
-  * **Sélection :** Choisissez un jeu de données différent déjà inclus dans Fluke (par exemple, CIFAR-10, Shakespeare, FEMNIST).
-  * **Adaptation :** Sélectionnez un modèle approprié (par exemple, CNN pour les images, LSTM pour le texte).
-  * **Exécution :** Exécutez et analysez un scénario FL complet.
+## 5. Tâches à réaliser
 
-## 4\. Mini-Projet : Intégration Personnalisée
+### Partie 1 : Préparation des données
 
-L'objectif final est d'étendre Fluke en intégrant des ressources externes.
+1.1 Chargement et pré-traitement du jeu de données choisi :
 
-  * **Exigences :**
-    1.  **Importer un Jeu de Données Externe :** Intégrez un jeu de données non fourni par Fluke.
-    2.  **Définir un Modèle Personnalisé :** Implémentez un modèle de votre choix (CNN, Transformer, MLP, etc.).
-    3.  **DataContainer :** Construisez un `DataContainer` conforme aux spécifications de Fluke.
-  * **Scénario :** Développez un scénario fédéré complet (distribution, algorithme d'agrégation, exécution) et analysez les performances globales/locales.
-  * **Ressources :**
-      * Tutoriel sur les Jeux de Données : [Fluke Custom Dataset](https://makgyver.github.io/fluke/examples/tutorials/flukecustomataset.html).
-      * Tutoriel sur les Modèles : [Fluke Custom NN](https://makgyver.github.io/fluke/examples/tutorials/flukecustom.nn.html).
+- séparation train / test ;
+- normalisation ou standardisation ;
+- gestion des valeurs manquantes.
+
+1.2 Choisir un modèle d'apprentissage adapté aux données.
+
+### Partie 2 : Mise en place de l'apprentissage fédéré avec Fluke
+
+2.1 Définir un scénario où chaque client représente un hôpital ou un centre médical.
+
+2.2 Répartir les données en plusieurs clients :
+
+- Cas IID ;
+- Cas non-IID.
+
+2.3 Comparer les performances dans les deux scénarios et appliquer une méthode de traitement de l'hétérogénéité des données, en mesurant son coût et son impact sur la qualité du modèle.
+
+### Partie 3 : Préservation de la vie privée
+
+Implémenter un mécanisme de protection parmi les suivants :
+
+- ajout de bruit (LDP, CDP) ;
+- secure aggregation ;
+- model pruning ;
+
+Étudier l'impact de ces mécanismes sur les performances et mesurer leurs coûts.
+
+### Partie 4 : Étude de l'équité et de la scalabilité
+
+Étudier l'équité du modèle par rapport aux attributs démographiques présents dans les données (ex. : sexe, âge). Des métriques de fairness doivent être calculées et analysées.
+
+Appliquer une méthode de mitigation du biais et évaluer son efficacité.
+
+### Bonus : Apprentissage fédéré vertical (VFL)
+
+On considère qu'en plus des hôpitaux participant à l'apprentissage fédéré, une compagnie d'assurance collabore également au processus d'apprentissage. Dans ce scénario, les hôpitaux et l'assureur partagent les mêmes patients, mais disposent de caractéristiques différentes.
+
+L'objectif de ce bonus est d'implémenter un processus d'apprentissage fédéré vertical (Vertical Federated Learning, VFL).
+
+## 6. Livrables
+
+- Une présentation de 10 minutes ;
+- Le code.
