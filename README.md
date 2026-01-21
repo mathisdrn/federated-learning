@@ -11,9 +11,7 @@ This project implements a Federated Learning (FL) system for medical diagnosis u
 │   ├── dataset.py      # Data loading, preprocessing, and download logic
 │   ├── models.py       # PyTorch model architecture (BinaryClassifier)
 │   └── simulation.py   # Reusable FL experiment logic (FedAvg, FedProx)
-├── data/               # Dataset storage (ignored by git)
-│   └── raw/            # Downloaded UCI Heart Disease dataset
-├── notebooks/          # Analysis notebooks
+├── diabetic_data.csv   # Dataset Diabetes 130-US hospitals
 ├── pyproject.toml      # Project configuration and dependencies
 └── README.md           # This file
 ```
@@ -43,7 +41,7 @@ uv run -m src.main
 
 ### Experiment Scenarios
 
-The script (`src/main.py`) runs three scenarios using the **Heart Disease UCI** dataset:
+The script (`src/main.py`) runs three scenarios using the **Dataset Diabetes 130-US hospitals** dataset:
 
 1.  **Baseline (IID)**:
     *   **Algorithm**: FedAvg
@@ -63,16 +61,10 @@ The script (`src/main.py`) runs three scenarios using the **Heart Disease UCI** 
 
 ## Data
 
-The project uses the **Heart Disease UCI** dataset.
-*   **Source**: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/45/heart+disease)
+The project uses the **Diabetes 130-US Hospitals** dataset.
+*   **Source**: [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/diabetes+130-us+hospitals+for+years+1999-2008)
 *   **Preprocessing**:
     *   Downloads automatically if missing via `src/dataset.py`.
     *   Converts targets to Binary Classification (Presence vs Absence of heart disease).
     *   Normalizes features (StandardScaler).
     *   Splits into train/test sets for clients and server.
-
-## Future Work
-
-*   **Hyperparameter Tuning**: Optimize `mu` for FedProx.
-*   **Privacy**: Implement Differential Privacy (DP-FedAvg).
-*   **Fairness**: Analyze model performance across demographic groups (Age/Sex).

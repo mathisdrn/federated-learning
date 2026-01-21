@@ -1,3 +1,5 @@
+import time
+
 import torch.nn as nn
 from fluke import DDict, FlukeENV
 from fluke.algorithms import CentralizedFL
@@ -20,6 +22,8 @@ def run_experiment(
     seed=42,
     extra_client_params=None,
     sample_size=None,
+    evaluator=None,
+    eligible_perc=1.0,
 ):
     # 1. Setup Environment
     # Re-instantiating FlukeENV singleton to update settings if needed
@@ -28,7 +32,8 @@ def run_experiment(
     env.set_device("auto")
 
     # Configure Evaluator
-    evaluator = ClassificationEval(eval_every=1, n_classes=2)
+    if evaluator is None:
+        evaluator = ClassificationEval(eval_every=1, n_classes=2)
     env.set_evaluator(evaluator)
 
     # 2. Prepare Data
@@ -81,16 +86,19 @@ def run_experiment(
 
     # 7. Run Experiment
     print(f"Starting training for {n_rounds} rounds...")
-    # Capture output or logs if possible, but Fluke prints progress bars
-    algo.run(n_rounds=n_rounds, eligible_perc=1.0)
+    start_time = time.perf_counter()
+    algo.run(n_rounds=n_rounds, eligible_perc=eligible_perc)
+    runtime = time.perf_counter() - start_time
 
     # 8. Final Evaluation
     print("Evaluating final model...")
     metrics = algo.server.evaluate(evaluator, algo.server.test_set)
+    metrics = dict(metrics)
+    metrics["runtime_seconds"] = round(runtime, 2)
     print(f"Final Global Metrics: {metrics}")
 
-    print(f"{algo_name} Experiment finished.")
-    return algo
+    print(f"{algo_name} Experiment finished in {runtime:.2f}s.")
+    return algo, metrics
 
 
 if __name__ == "__main__":
